@@ -11,6 +11,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Performance Hints -->
+    <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
+    <link rel="preconnect" href="https://github.com" crossorigin>
+    <link rel="preconnect" href="https://i.postimg.cc" crossorigin>
     
     <style>
         /* =========================================
@@ -346,6 +350,60 @@
         .nav-link.active { color: var(--primary); opacity: 1; }
 
         @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* =========================================
+           8. LARGE SCREEN OPTIMIZATION
+           ========================================= */
+        @media (min-width: 1024px) {
+            .app-layout {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            .top-bar,
+            .chips-wrapper,
+            .list-container {
+                padding-left: 32px;
+                padding-right: 32px;
+            }
+
+            .list-container {
+                padding-bottom: 220px;
+            }
+
+            .track-item {
+                padding: 14px 0;
+            }
+
+            .mini-player {
+                left: 50%;
+                right: auto;
+                width: min(900px, 90vw);
+                transform: translateX(-50%);
+            }
+            .mini-player.hide { transform: translate(-50%, 200%); }
+
+            .bottom-nav {
+                left: 50%;
+                transform: translateX(-50%);
+                width: min(900px, 100%);
+                border-radius: 16px 16px 0 0;
+            }
+
+            .player-overlay {
+                align-items: center;
+            }
+            .overlay-header,
+            .player-stage,
+            .player-controls {
+                width: min(900px, 100%);
+            }
+            .artwork-card {
+                width: min(210px, 60vw);
+                max-width: 210px;
+            }
+            .lyrics-container { font-size: 26px; }
+        }
     </style>
 </head>
 <body>
@@ -515,12 +573,35 @@
 
     <!-- MAIN APP SCRIPT -->
     <script type="module">
-        import tracks from './tracks.js';
+        const TRACKS_URL = 'https://raw.githubusercontent.com/d4m-dev/media/refs/heads/main/load-track/tracks.js';
+        const normalizeTracks = (items = []) => items.map((item) => ({
+            name: item.title || item.name || 'Tạm thời chưa có!',
+            artist: item.artist || 'Tạm thời chưa có!',
+            artwork: item.cover || item.artwork || 'Tạm thời chưa có!',
+            path: item.audioSrc || item.path || 'Tạm thời chưa có!',
+            instrumental: item.instrumentalSrc || item.instrumental || 'Tạm thời chưa có!',
+            vid: item.videoSrc || item.vid || 'Tạm thời chưa có!',
+            lyric: item.lyricSrc || item.lyric || 'Tạm thời chưa có!'
+        }));
+
+        const loadRemoteTracks = async () => {
+            if (Array.isArray(window.TRACKS) && window.TRACKS.length) return window.TRACKS;
+            try {
+                const res = await fetch(TRACKS_URL, { cache: 'no-store' });
+                const text = await res.text();
+                const sandbox = {};
+                const getter = new Function('window', `${text}; return window.TRACKS || [];`);
+                const data = getter(sandbox);
+                return Array.isArray(data) ? data : [];
+            } catch (e) {
+                return [];
+            }
+        };
 
         class MusicPro {
             constructor() {
                 this.state = {
-                    playlist: tracks || [],
+                    playlist: [],
                     currentIndex: 0,
                     isPlaying: false,
                     isShuffle: false,
@@ -553,9 +634,14 @@
                 this.init();
             }
 
-            init() {
+            async init() {
                 this.applyTheme();
+                const rawTracks = await loadRemoteTracks();
+                this.state.playlist = normalizeTracks(rawTracks);
                 this.renderPlaylist();
+                if (!this.state.playlist.length) {
+                    this.showToast('Không tải được danh sách phát');
+                }
                 
                 // Load first song but don't play
                 if (this.state.playlist.length > 0) {
@@ -588,6 +674,10 @@
             // --- RENDER ---
             renderPlaylist() {
                 this.elements.list.innerHTML = '';
+                if (!this.state.playlist.length) {
+                    this.elements.list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-sub);">Không tải được danh sách phát</div>';
+                    return;
+                }
                 this.state.playlist.forEach((track, index) => {
                     const item = document.createElement('div');
                     item.className = 'track-item';
