@@ -405,8 +405,10 @@ class MusicPro {
         // Download
         document.getElementById('btn-dl').onclick = () => this.downloadSong(this.state.currentIndex);
         
-        // Favorites Navigation
-        document.getElementById('nav-favorites').onclick = () => this.toggleFavoritesView();
+        // Navigation Links
+        document.querySelectorAll('.nav-link').forEach((nav, index) => {
+            nav.onclick = () => this.switchNavigation(index);
+        });
     }
 
     updateMuteUI() {
@@ -623,6 +625,39 @@ class MusicPro {
         }
         
         this.renderPlaylist();
+    }
+    
+    switchNavigation(index) {
+        // Update active state
+        document.querySelectorAll('.nav-link').forEach(nav => nav.classList.remove('active'));
+        document.querySelectorAll('.nav-link')[index].classList.add('active');
+        
+        // Handle navigation logic
+        const listHeader = document.querySelector('.list-header h2');
+        const listSubtext = document.querySelector('.list-header p');
+        
+        switch(index) {
+            case 0: // Trang chủ
+                this.state.showOnlyFavorites = false;
+                listHeader.innerText = 'Danh sách phát';
+                listSubtext.innerText = 'Cập nhật hôm nay • Dành riêng cho bạn';
+                this.renderPlaylist();
+                break;
+                
+            case 1: // Khám phá
+                this.state.showOnlyFavorites = false;
+                listHeader.innerText = 'Khám phá';
+                listSubtext.innerText = 'Tìm hiểu nhạc mới • Xu hướng';
+                this.renderPlaylist();
+                break;
+                
+            case 2: // Yêu thích
+                this.state.showOnlyFavorites = true;
+                listHeader.innerText = 'Bài hát yêu thích';
+                listSubtext.innerText = `${this.state.favorites.length} bài hát • Danh sách của bạn`;
+                this.renderPlaylist();
+                break;
+        }
     }
 
     formatTime(seconds) {
