@@ -34,7 +34,9 @@ class MusicPro {
             currentMode: 'audio', // 'audio' | 'video'
             volume: 0.8,
             isMuted: false,
-            theme: localStorage.getItem('theme') || 'dark'
+            theme: localStorage.getItem('theme') || 'dark',
+            favorites: JSON.parse(localStorage.getItem('favorites') || '[]'),
+            showOnlyFavorites: false
         };
 
         this.audio = new Audio();
@@ -99,13 +101,29 @@ class MusicPro {
     // --- RENDER ---
     renderPlaylist() {
         this.elements.list.innerHTML = '';
-        if (!this.state.playlist.length) {
-            this.elements.list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-sub);">Không tải được danh sách phát</div>';
+        
+        let displayPlaylist = this.state.playlist;
+        if (this.state.showOnlyFavorites) {
+            displayPlaylist = this.state.playlist.filter((_, index) => 
+                this.state.favorites.includes(this.getTrackId(index)));
+        }
+        
+        if (!displayPlaylist.length) {
+            const message = this.state.showOnlyFavorites ? 
+                'Chưa có bài hát yêu thích nào' : 
+                'Không tải được danh sách phát';
+            this.elements.list.innerHTML = `<div style="padding:20px; text-align:center; color:var(--text-sub);">${message}</div>`;
             return;
         }
-        this.state.playlist.forEach((track, index) => {
+        
+        displayPlaylist.forEach((track, displayIndex) => {
+            const originalIndex = this.state.showOnlyFavorites ? 
+                this.state.playlist.findIndex(t => t.name === track.name && t.artist === track.artist) : 
+                displayIndex;
+                
             const item = document.createElement('div');
             item.className = 'track-item';
+            const isFavorite = this.state.favorites.includes(this.getTrackId(originalIndex));
             item.innerHTML = `
                 <div class="track-thumb">
                     <img src="${track.artwork}" loading="lazy">
@@ -117,12 +135,19 @@ class MusicPro {
                     <div class="track-title">${track.name}</div>
                     <div class="track-artist">${track.artist}</div>
                 </div>
-                <button class="btn-icon btn-download-sm" onclick="event.stopPropagation(); app.downloadSong(${index})">
-                    <i class="fa-solid fa-download"></i>
-                </button>
+                <div style="display:flex; gap:5px;">
+                    <button class="btn-icon btn-favorite-sm ${isFavorite ? 'active' : ''}" onclick="event.stopPropagation(); app.toggleFavorite(${originalIndex})">
+                        <i class="fa-${isFavorite ? 'solid' : 'regular'} fa-heart"></i>
+                    </button>
+                    <button class="btn-icon btn-download-sm" onclick="event.stopPropagation(); app.downloadSong(${originalIndex})">
+                        <i class="fa-solid fa-download"></i>
+                    </button>
+                </div>
             `;
             item.onclick = (e) => {
-                if (!e.target.closest('.btn-download-sm')) this.playIndex(index);
+                if (!e.target.closest('.btn-download-sm') && !e.target.closest('.btn-favorite-sm')) {
+                    this.playIndex(originalIndex);
+                }
             };
             this.elements.list.appendChild(item);
         });
@@ -158,6 +183,9 @@ class MusicPro {
         document.querySelectorAll('.track-item').forEach((el, i) => {
             el.classList.toggle('active', i === index);
         });
+        
+        // Update heart button state
+        this.updateHeartButton();
 
         // Ambient Color (Fake logic - random hue based on index)
         const hue = (index * 50) % 360;
@@ -339,6 +367,9 @@ class MusicPro {
         document.getElementById('btn-mini-next').onclick = (e) => { e.stopPropagation(); this.next(); };
         document.getElementById('btn-prev').onclick = () => this.prev();
 
+        // Heart/Favorite Button
+        document.getElementById('btn-heart').onclick = () => this.toggleFavorite(this.state.currentIndex);
+
         // Shuffle
         document.getElementById('btn-shuffle').onclick = (e) => {
             this.state.isShuffle = !this.state.isShuffle;
@@ -373,6 +404,9 @@ class MusicPro {
 
         // Download
         document.getElementById('btn-dl').onclick = () => this.downloadSong(this.state.currentIndex);
+        
+        // Favorites Navigation
+        document.getElementById('nav-favorites').onclick = () => this.toggleFavoritesView();
     }
 
     updateMuteUI() {
@@ -532,6 +566,63 @@ class MusicPro {
         this.elements.toastMsg.innerText = msg;
         this.elements.toast.classList.add('show');
         setTimeout(() => this.elements.toast.classList.remove('show'), 3000);
+    }
+    
+    // --- FAVORITES FUNCTIONALITY ---
+    getTrackId(index) {
+        const track = this.state.playlist[index];
+        return `${track.name}_${track.artist}`.replace(/\s+/g, '_');
+    }
+    
+    toggleFavorite(index) {
+        const trackId = this.getTrackId(index);
+        const isFavorite = this.state.favorites.includes(trackId);
+        
+        if (isFavorite) {
+            this.state.favorites = this.state.favorites.filter(id => id !== trackId);
+            this.showToast('Đã xóa khỏi yêu thích');
+        } else {
+            this.state.favorites.push(trackId);
+            this.showToast('Đã thêm vào yêu thích');
+        }
+        
+        localStorage.setItem('favorites', JSON.stringify(this.state.favorites));
+        this.updateHeartButton();
+        this.renderPlaylist(); // Re-render to update heart icons
+    }
+    
+    updateHeartButton() {
+        const heartBtn = document.getElementById('btn-heart');
+        const isFavorite = this.state.favorites.includes(this.getTrackId(this.state.currentIndex));
+        
+        heartBtn.classList.toggle('active', isFavorite);
+        heartBtn.innerHTML = `<i class="fa-${isFavorite ? 'solid' : 'regular'} fa-heart"></i>`;
+    }
+    
+    toggleFavoritesView() {
+        this.state.showOnlyFavorites = !this.state.showOnlyFavorites;
+        
+        // Update navigation active state
+        document.querySelectorAll('.nav-link').forEach(nav => nav.classList.remove('active'));
+        if (this.state.showOnlyFavorites) {
+            document.getElementById('nav-favorites').classList.add('active');
+        } else {
+            document.querySelector('.nav-link').classList.add('active'); // First nav (Home)
+        }
+        
+        // Update header
+        const listHeader = document.querySelector('.list-header h2');
+        const listSubtext = document.querySelector('.list-header p');
+        
+        if (this.state.showOnlyFavorites) {
+            listHeader.innerText = 'Bài hát yêu thích';
+            listSubtext.innerText = `${this.state.favorites.length} bài hát • Danh sách của bạn`;
+        } else {
+            listHeader.innerText = 'Danh sách phát';
+            listSubtext.innerText = 'Cập nhật hôm nay • Dành riêng cho bạn';
+        }
+        
+        this.renderPlaylist();
     }
 
     formatTime(seconds) {
