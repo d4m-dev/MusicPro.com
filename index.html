@@ -56,8 +56,18 @@
         <!-- TRACK LIST -->
         <div class="list-container" id="main-scroll">
             <div class="list-header">
-                <h2>Danh sách phát</h2>
-                <p>Cập nhật hôm nay • Dành riêng cho bạn</p>
+                <div class="header-main">
+                    <h2>Danh sách phát</h2>
+                    <p>Cập nhật hôm nay • Dành riêng cho bạn</p>
+                </div>
+                <div class="sort-controls" id="sort-controls" style="display: none;">
+                    <button class="btn-sort active" data-sort="id" id="sort-by-date">
+                        <i class="fa-solid fa-clock"></i> <span>Mới nhất</span>
+                    </button>
+                    <button class="btn-sort" data-sort="name" id="sort-by-name">
+                        <i class="fa-solid fa-font"></i> <span>Tên A-Z</span>
+                    </button>
+                </div>
             </div>
             <div id="track-list"></div>
             <div style="height: 150px;"></div>

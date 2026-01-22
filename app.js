@@ -36,7 +36,9 @@ class MusicPro {
             isMuted: false,
             theme: localStorage.getItem('theme') || 'dark',
             favorites: JSON.parse(localStorage.getItem('favorites') || '[]'),
-            showOnlyFavorites: false
+            showOnlyFavorites: false,
+            sortBy: 'id', // 'id' | 'name'
+            currentNav: 0 // 0: Home, 1: Explore, 2: Favorites
         };
 
         this.audio = new Audio();
@@ -75,6 +77,9 @@ class MusicPro {
             this.loadSong(0, false);
         }
 
+        // Show sort controls for home page by default
+        document.getElementById('sort-controls').style.display = 'flex';
+
         // Simulate loading
         setTimeout(() => {
             this.elements.loader.style.opacity = '0';
@@ -102,10 +107,17 @@ class MusicPro {
     renderPlaylist() {
         this.elements.list.innerHTML = '';
         
-        let displayPlaylist = this.state.playlist;
+        let displayPlaylist = [...this.state.playlist];
+        
+        // Apply sorting (only for home and explore)
+        if (this.state.currentNav !== 2) {
+            displayPlaylist = this.getSortedPlaylist(displayPlaylist);
+        }
+        
+        // Apply favorites filter
         if (this.state.showOnlyFavorites) {
-            displayPlaylist = this.state.playlist.filter((_, index) => 
-                this.state.favorites.includes(this.getTrackId(index)));
+            displayPlaylist = displayPlaylist.filter((track) => 
+                this.state.favorites.includes(this.getTrackIdByTrack(track)));
         }
         
         if (!displayPlaylist.length) {
@@ -117,9 +129,7 @@ class MusicPro {
         }
         
         displayPlaylist.forEach((track, displayIndex) => {
-            const originalIndex = this.state.showOnlyFavorites ? 
-                this.state.playlist.findIndex(t => t.name === track.name && t.artist === track.artist) : 
-                displayIndex;
+            const originalIndex = this.state.playlist.findIndex(t => t.name === track.name && t.artist === track.artist);
                 
             const item = document.createElement('div');
             item.className = 'track-item';
@@ -151,6 +161,24 @@ class MusicPro {
             };
             this.elements.list.appendChild(item);
         });
+    }
+    
+    getSortedPlaylist(playlist) {
+        const sorted = [...playlist];
+        if (this.state.sortBy === 'name') {
+            return sorted.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+        } else {
+            // Sort by ID (newest first - reverse order)
+            return sorted.sort((a, b) => {
+                const idA = this.getOriginalIndex(a);
+                const idB = this.getOriginalIndex(b);
+                return idB - idA; // Reverse order (newest first)
+            });
+        }
+    }
+    
+    getOriginalIndex(track) {
+        return this.state.playlist.findIndex(t => t.name === track.name && t.artist === track.artist);
     }
 
     // --- PLAYER LOGIC ---
@@ -409,6 +437,11 @@ class MusicPro {
         document.querySelectorAll('.nav-link').forEach((nav, index) => {
             nav.onclick = () => this.switchNavigation(index);
         });
+        
+        // Sort Controls
+        document.querySelectorAll('.btn-sort').forEach(btn => {
+            btn.onclick = () => this.changeSortOrder(btn.dataset.sort);
+        });
     }
 
     updateMuteUI() {
@@ -576,6 +609,10 @@ class MusicPro {
         return `${track.name}_${track.artist}`.replace(/\s+/g, '_');
     }
     
+    getTrackIdByTrack(track) {
+        return `${track.name}_${track.artist}`.replace(/\s+/g, '_');
+    }
+    
     toggleFavorite(index) {
         const trackId = this.getTrackId(index);
         const isFavorite = this.state.favorites.includes(trackId);
@@ -632,15 +669,19 @@ class MusicPro {
         document.querySelectorAll('.nav-link').forEach(nav => nav.classList.remove('active'));
         document.querySelectorAll('.nav-link')[index].classList.add('active');
         
+        this.state.currentNav = index;
+        
         // Handle navigation logic
         const listHeader = document.querySelector('.list-header h2');
         const listSubtext = document.querySelector('.list-header p');
+        const sortControls = document.getElementById('sort-controls');
         
         switch(index) {
             case 0: // Trang chủ
                 this.state.showOnlyFavorites = false;
                 listHeader.innerText = 'Danh sách phát';
                 listSubtext.innerText = 'Cập nhật hôm nay • Dành riêng cho bạn';
+                sortControls.style.display = 'flex';
                 this.renderPlaylist();
                 break;
                 
@@ -648,6 +689,7 @@ class MusicPro {
                 this.state.showOnlyFavorites = false;
                 listHeader.innerText = 'Khám phá';
                 listSubtext.innerText = 'Tìm hiểu nhạc mới • Xu hướng';
+                sortControls.style.display = 'flex';
                 this.renderPlaylist();
                 break;
                 
@@ -655,9 +697,27 @@ class MusicPro {
                 this.state.showOnlyFavorites = true;
                 listHeader.innerText = 'Bài hát yêu thích';
                 listSubtext.innerText = `${this.state.favorites.length} bài hát • Danh sách của bạn`;
+                sortControls.style.display = 'none';
                 this.renderPlaylist();
                 break;
         }
+    }
+    
+    changeSortOrder(sortBy) {
+        this.state.sortBy = sortBy;
+        
+        // Update sort button states
+        document.querySelectorAll('.btn-sort').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`[data-sort="${sortBy}"]`).classList.add('active');
+        
+        // Update button text
+        if (sortBy === 'name') {
+            document.getElementById('sort-by-name').innerHTML = '<i class="fa-solid fa-font"></i> <span>Tên A-Z</span>';
+        } else {
+            document.getElementById('sort-by-date').innerHTML = '<i class="fa-solid fa-clock"></i> <span>Mới nhất</span>';
+        }
+        
+        this.renderPlaylist();
     }
 
     formatTime(seconds) {
