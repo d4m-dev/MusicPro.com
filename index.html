@@ -4,34 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Music Pro Ultimate</title>
-    <meta name="description" content="Trải nghiệm nghe nhạc đỉnh cao với giao diện Light/Dark mode">
     <meta name="theme-color" content="#000000">
     
-    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Performance Hints -->
-    <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
-    <link rel="preconnect" href="https://github.com" crossorigin>
-    <link rel="preconnect" href="https://i.postimg.cc" crossorigin>
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="styles.css">
+    
+    <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
 
-    <!-- PRELOADER -->
     <div id="loader" class="flex-center">
         <div class="loader-ring"></div>
         <h3 style="font-weight:700; letter-spacing:1px;">MUSIC PRO</h3>
     </div>
 
-    <!-- TOAST MSG -->
     <div id="toast"><i class="fa-solid fa-circle-check" style="color:var(--primary)"></i> <span id="toast-msg">Thông báo</span></div>
 
     <div class="app-layout">
         
-        <!-- HEADER -->
         <div class="top-bar">
             <div class="logo"><i class="fa-brands fa-youtube"></i> Music Pro</div>
             <div class="flex-center" style="gap: 15px;">
@@ -42,18 +32,24 @@
             </div>
         </div>
 
-        <!-- TAGS -->
-        <div class="chips-wrapper">
-            <div class="chips-row">
-                <span class="chip active">Tất cả</span>
-                <span class="chip">Thư giãn</span>
-                <span class="chip">Tập luyện</span>
-                <span class="chip">Yêu thích</span>
-                <span class="chip">Trending</span>
+        <div class="search-wrapper">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="search-input" placeholder="Tìm tên bài hát, ca sĩ...">
+                <button id="btn-clear-search" style="display:none;"><i class="fa-solid fa-xmark"></i></button>
             </div>
         </div>
 
-        <!-- TRACK LIST -->
+        <div class="chips-wrapper">
+            <div class="chips-row">
+                <span class="chip active" data-type="all">Tất Cả</span>
+                <span class="chip" data-type="remix">Nhạc Remix</span>
+                <span class="chip" data-type="tet">Nhạc Tết</span>
+                <span class="chip" data-type="lofi">Lofi</span>
+                <span class="chip" data-type="favorites">Yêu thích</span>
+            </div>
+        </div>
+
         <div class="list-container" id="main-scroll">
             <div class="list-header">
                 <div class="header-main">
@@ -73,13 +69,10 @@
             <div style="height: 150px;"></div>
         </div>
 
-        <!-- MINI PLAYER -->
         <div class="mini-player hide" id="mini-player">
             <div class="progress-line"><div class="progress-fill" id="mini-fill"></div></div>
             <div class="mini-content" id="mini-click-area">
-                <div class="mini-img-box">
-                    <img id="mini-img" src="" alt="">
-                </div>
+                <div class="mini-img-box"><img id="mini-img" src="" alt=""></div>
                 <div class="mini-text-box">
                     <span class="mini-title" id="mini-title">...</span>
                     <span class="mini-status" id="mini-artist">...</span>
@@ -91,11 +84,9 @@
             </div>
         </div>
 
-        <!-- FULL PLAYER OVERLAY -->
         <div class="player-overlay" id="player-overlay">
             <div class="ambient-glow" id="ambient-light"></div>
             
-            <!-- OVERLAY HEADER -->
             <div class="overlay-header">
                 <button class="btn-icon" id="btn-close"><i class="fa-solid fa-chevron-down"></i></button>
                 <div class="tab-switcher">
@@ -103,20 +94,27 @@
                     <div class="tab-btn" data-tab="video">VIDEO</div>
                     <div class="tab-btn" data-tab="lyrics">LYRICS</div>
                 </div>
-                <button class="btn-icon"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-            </div>
-
-            <!-- CONTENT STAGE -->
-            <div class="player-stage">
                 
-                <!-- VIEW: SONG -->
-                <div class="stage-view active" id="view-song">
-                    <div class="artwork-card">
-                        <img id="full-artwork" src="" alt="">
+                <div style="position: relative;">
+                    <button class="btn-icon" id="btn-options"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                    <div class="options-menu" id="options-menu">
+                        <div class="menu-item" id="btn-switch-beat">
+                            <i class="fa-solid fa-microphone-lines"></i>
+                            <span>Chuyển sang Beat</span>
+                            <div class="toggle-switch"></div>
+                        </div>
+                        <div class="menu-item">
+                            <i class="fa-regular fa-clock"></i>
+                            <span>Hẹn giờ tắt (Sắp có)</span>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- VIEW: VIDEO -->
+            <div class="player-stage">
+                <div class="stage-view active" id="view-song">
+                    <div class="artwork-card"><img id="full-artwork" src="" alt=""></div>
+                </div>
                 <div class="stage-view" id="view-video">
                     <div class="video-container">
                         <video id="video-element" playsinline webkit-playsinline></video>
@@ -126,8 +124,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- VIEW: LYRICS -->
                 <div class="stage-view" id="view-lyrics">
                     <div class="lyrics-container" id="lyrics-content">
                         <p style="text-align:center; color:var(--text-sub);">Đang tải lời bài hát...</p>
@@ -135,16 +131,14 @@
                 </div>
             </div>
 
-            <!-- CONTROLS PANEL -->
             <div class="player-controls">
-                
                 <div class="meta-info">
                     <div class="song-texts">
                         <div class="marquee-wrapper" id="marquee-box-title">
-                            <span class="marquee-content text-h1" id="full-title">Tiêu đề bài hát</span>
+                            <span class="marquee-content text-h1" id="full-title">Title</span>
                         </div>
                         <div class="marquee-wrapper" id="marquee-box-artist">
-                            <span class="marquee-content text-h2" id="full-artist">Tên ca sĩ</span>
+                            <span class="marquee-content text-h2" id="full-artist">Artist</span>
                         </div>
                     </div>
                     <div class="flex-center" style="gap:10px;">
@@ -178,24 +172,16 @@
             </div>
         </div>
 
-        <!-- BOTTOM NAV -->
         <nav class="bottom-nav">
-            <div class="nav-link active">
-                <i class="fa-solid fa-house"></i> <span>Trang chủ</span>
-            </div>
-            <div class="nav-link">
-                <i class="fa-solid fa-compass"></i> <span>Khám phá</span>
-            </div>
-            <div class="nav-link" id="nav-favorites">
-                <i class="fa-solid fa-heart"></i> <span>Yêu thích</span>
-            </div>
+            <div class="nav-link active"><i class="fa-solid fa-house"></i> <span>Trang chủ</span></div>
+            <div class="nav-link"><i class="fa-solid fa-compass"></i> <span>Khám phá</span></div>
+            <div class="nav-link" id="nav-favorites"><i class="fa-solid fa-heart"></i> <span>Yêu thích</span></div>
         </nav>
-
     </div>
 
-    <!-- MAIN APP SCRIPT -->
-    <script src="app.js"></script>
+    <script src="src/tet.js"></script>
+    <script src="src/remix.js"></script>
+    <script src="src/lofi.js"></script>
+    <script src="src/app.js"></script>
 </body>
 </html>
-
-
