@@ -29,9 +29,16 @@ class MusicPro {
             playlist: [], currentIndex: 0, isPlaying: false, isShuffle: false, repeatMode: 0, 
             currentMode: 'audio', volume: 0.8, isMuted: false, theme: localStorage.getItem('theme') || 'dark',
             favorites: JSON.parse(localStorage.getItem('favorites') || '[]'),
-            currentFilter: 'all', searchQuery: '', sortBy: 'id', currentNav: 0, isBeatMode: false
+            currentFilter: 'all', searchQuery: '', sortBy: 'id', currentNav: 0, isBeatMode: false,
+            
+            // State để kiểm soát preload, tránh tải đi tải lại nhiều lần
+            hasPreloaded: false 
         };
+
         this.audio = new Audio();
+        // Tạo thêm 1 Audio object để tải ngầm (Preloader)
+        this.preloadAudio = new Audio(); 
+        
         this.video = document.getElementById('video-element');
         this.lyricsData = [];
         this.elements = {
@@ -125,6 +132,8 @@ class MusicPro {
 
     loadSong(idx, autoPlay = true) {
         this.state.currentIndex = idx;
+        this.state.hasPreloaded = false; // Reset trạng thái preload cho bài mới
+        
         const song = this.state.playlist[idx];
         document.getElementById('full-title').innerText = song.name;
         document.getElementById('full-artist').innerText = song.artist;
@@ -185,12 +194,14 @@ class MusicPro {
     updateBeatBtnUI() { this.elements.btnSwitchBeat.classList.toggle('active', this.state.isBeatMode); }
 
     playIndex(idx) { this.loadSong(idx, true); }
+    
     playAudio() {
         this.video.pause(); this.state.currentMode = 'audio';
         const src = this.state.isBeatMode ? this.state.playlist[this.state.currentIndex].instrumental : this.state.playlist[this.state.currentIndex].path;
         if (this.audio.src !== src) this.audio.src = src;
         this.audio.play().then(() => { this.state.isPlaying = true; this.updatePlayState(); });
     }
+    
     playVideo() {
         this.state.currentMode = 'video';
         this.elements.videoMsg.style.display = 'flex';
@@ -203,6 +214,7 @@ class MusicPro {
             this.elements.videoMsg.innerHTML = '<span>Video lỗi</span>';
         });
     }
+    
     pause() { this.audio.pause(); this.video.pause(); this.state.isPlaying = false; this.updatePlayState(); }
     togglePlay() { this.state.isPlaying ? this.pause() : (this.state.currentMode === 'video' && this.video.src ? this.playVideo() : this.playAudio()); }
     updatePlayState() {
@@ -212,17 +224,50 @@ class MusicPro {
         if (this.state.isPlaying) this.elements.mini.classList.remove('hide');
     }
 
-    next() {
-        const display = this.getDisplayPlaylist(); if (!display.length) return;
+    // --- LOGIC TÌM BÀI TIẾP THEO (TÁCH RIÊNG) ---
+    getNextIndex() {
+        const display = this.getDisplayPlaylist(); 
+        if (!display.length) return -1;
         const curr = this.state.playlist[this.state.currentIndex];
         let idx = display.findIndex(t => t.id === curr.id);
         let nextIdx = 0;
+        
         if (this.state.isShuffle) {
-            if (display.length > 1) do { nextIdx = Math.floor(Math.random() * display.length); } while (nextIdx === idx);
-        } else { if (idx !== -1) nextIdx = idx + 1 >= display.length ? 0 : idx + 1; }
-        const masterIdx = this.state.playlist.findIndex(t => t.id === display[nextIdx].id);
-        this.loadSong(masterIdx, true);
+            if (display.length > 1) {
+                // Logic shuffle đơn giản (có thể cải thiện để không lặp)
+                do { nextIdx = Math.floor(Math.random() * display.length); } while (nextIdx === idx);
+            }
+        } else { 
+            if (idx !== -1) nextIdx = idx + 1 >= display.length ? 0 : idx + 1; 
+        }
+        
+        // Trả về index gốc trong playlist tổng
+        return this.state.playlist.findIndex(t => t.id === display[nextIdx].id);
     }
+
+    // --- HÀM PRELOAD THÔNG MINH ---
+    preloadNextTrack() {
+        if (this.state.hasPreloaded) return; // Nếu đã tải rồi thì thôi
+        
+        const nextIdx = this.getNextIndex();
+        if (nextIdx !== -1) {
+            const nextSong = this.state.playlist[nextIdx];
+            const src = this.state.isBeatMode ? nextSong.instrumental : nextSong.path;
+            
+            // Dùng audio ẩn để fetch dữ liệu vào cache trình duyệt
+            this.preloadAudio.src = src;
+            this.preloadAudio.load(); // Kích hoạt tải ngay lập tức
+            
+            console.log(`Đang tải trước: ${nextSong.name}`);
+            this.state.hasPreloaded = true;
+        }
+    }
+
+    next() {
+        const nextIdx = this.getNextIndex();
+        if (nextIdx !== -1) this.loadSong(nextIdx, true);
+    }
+
     prev() {
         const display = this.getDisplayPlaylist(); if (!display.length) return;
         const curr = this.state.playlist[this.state.currentIndex];
@@ -234,28 +279,29 @@ class MusicPro {
     }
 
     setupEventListeners() {
-        // --- FIX LỖI LẶP VÔ HẠN (Tab Background) ---
-        // Khi ẩn tab, Audio chạy tự do, Video bị trình duyệt pause/throttle.
-        // Ta không sync Video -> Audio khi ẩn. Chỉ sync khi hiện lại.
         document.addEventListener("visibilitychange", () => {
             if (!document.hidden && this.state.currentMode === 'video' && this.state.isBeatMode) {
-                // Khi quay lại tab: Đồng bộ Video theo Audio (vì Audio chạy đúng trong background)
                 this.video.currentTime = this.audio.currentTime;
                 if (this.state.isPlaying) this.video.play();
             }
         });
 
         const updateTime = (src) => {
+            if (document.hidden) return; 
+
             const d = src.duration || 0, c = src.currentTime || 0;
             
-            // Logic Sync chỉ chạy khi tab đang hiện (hoặc Audio mode)
+            // 1. Sync Beat Mode
             if (this.state.currentMode === 'video' && this.state.isBeatMode && !document.hidden) {
-                // Nếu Video lệch Audio quá 0.3s -> Kéo Audio theo Video
-                // (Ở chế độ foreground, Video là Master)
                 if (Math.abs(this.audio.currentTime - this.video.currentTime) > 0.3) {
                     this.audio.currentTime = this.video.currentTime;
                 }
                 if (!this.video.paused && this.audio.paused) this.audio.play();
+            }
+
+            // 2. TRIGGER PRELOAD KHI CÒN 15s
+            if (d > 0 && (d - c) < 15) {
+                this.preloadNextTrack();
             }
 
             if (d > 0) {
@@ -268,18 +314,9 @@ class MusicPro {
         };
         
         this.audio.ontimeupdate = () => { 
-            // Audio update time: Chỉ update UI nếu đang ở Audio Mode hoặc Beat Mode
-            if (this.state.currentMode === 'audio' || (this.state.currentMode === 'video' && this.state.isBeatMode)) {
-                updateTime(this.audio); 
-            }
+            if (this.state.currentMode === 'audio' || (this.state.currentMode === 'video' && this.state.isBeatMode)) updateTime(this.audio); 
         };
-        
-        this.video.ontimeupdate = () => { 
-            // Video update time: Chỉ update UI nếu đang ở Video Mode
-            if (this.state.currentMode === 'video') {
-                updateTime(this.video); 
-            }
-        };
+        this.video.ontimeupdate = () => { if (this.state.currentMode === 'video') updateTime(this.video); };
         
         const onEnd = () => {
             if (this.state.repeatMode === 1) {
@@ -291,7 +328,6 @@ class MusicPro {
             } else this.next();
         };
         this.audio.onended = onEnd;
-        // Chỉ nhận event end từ Video nếu đang xem Video
         this.video.onended = () => { if (this.state.currentMode === 'video') onEnd(); };
 
         this.elements.seekBar.oninput = (e) => {
