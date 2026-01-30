@@ -5,14 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Music Pro Ultimate</title>
     <meta name="theme-color" content="#000000">
-    
     <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <link rel="stylesheet" href="src/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/d4m-dev/media@main/src/styles.css">
 </head>
 <body>
-
     <div id="loader" class="flex-center">
         <div class="loader-ring"></div>
         <h3 style="font-weight:700; letter-spacing:1px;">MUSIC PRO</h3>
@@ -21,7 +18,6 @@
     <div id="toast"><i class="fa-solid fa-circle-check" style="color:var(--primary)"></i> <span id="toast-msg">Thông báo</span></div>
 
     <div class="app-layout">
-        
         <div class="top-bar">
             <div class="logo"><i class="fa-brands fa-youtube"></i> Music Pro</div>
             <div class="flex-center" style="gap: 15px;">
@@ -86,7 +82,6 @@
 
         <div class="player-overlay" id="player-overlay">
             <div class="ambient-glow" id="ambient-light"></div>
-            
             <div class="overlay-header">
                 <button class="btn-icon" id="btn-close"><i class="fa-solid fa-chevron-down"></i></button>
                 <div class="tab-switcher">
@@ -94,7 +89,6 @@
                     <div class="tab-btn" data-tab="video">VIDEO</div>
                     <div class="tab-btn" data-tab="lyrics">LYRICS</div>
                 </div>
-                
                 <div style="position: relative;">
                     <button class="btn-icon" id="btn-options"><i class="fa-solid fa-ellipsis-vertical"></i></button>
                     <div class="options-menu" id="options-menu">
@@ -103,9 +97,9 @@
                             <span>Chuyển sang Beat</span>
                             <div class="toggle-switch"></div>
                         </div>
-                        <div class="menu-item">
+                        <div class="menu-item" id="btn-open-timer">
                             <i class="fa-regular fa-clock"></i>
-                            <span>Hẹn giờ tắt (Sắp có)</span>
+                            <span id="timer-menu-text">Hẹn giờ tắt</span>
                         </div>
                     </div>
                 </div>
@@ -177,11 +171,53 @@
             <div class="nav-link"><i class="fa-solid fa-compass"></i> <span>Khám phá</span></div>
             <div class="nav-link" id="nav-favorites"><i class="fa-solid fa-heart"></i> <span>Yêu thích</span></div>
         </nav>
+        
+        <div id="timer-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h3>Hẹn giờ tắt nhạc</h3>
+                <div class="timer-grid">
+                    <button class="timer-btn" data-time="15">15 Phút</button>
+                    <button class="timer-btn" data-time="30">30 Phút</button>
+                    <button class="timer-btn" data-time="45">45 Phút</button>
+                    <button class="timer-btn" data-time="60">1 Giờ</button>
+                    <button class="timer-btn" data-time="120">2 Giờ</button>
+                    <button class="timer-btn stop" data-time="0" style="color: #ff4757;">Tắt hẹn giờ</button>
+                </div>
+                <button class="btn-close-modal" id="btn-close-timer">Đóng</button>
+            </div>
+        </div>
+
+        <div id="download-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h3>Tải xuống</h3>
+                <p id="dl-song-title" style="text-align:center; color:var(--text-sub); margin-bottom:20px; font-size:14px;"></p>
+                <div class="download-grid">
+                    <button class="dl-btn" data-type="audio">
+                        <i class="fa-solid fa-music"></i>
+                        <span>Nhạc MP3</span>
+                    </button>
+                    <button class="dl-btn" data-type="beat">
+                        <i class="fa-solid fa-microphone-lines"></i>
+                        <span>Beat / Kara</span>
+                    </button>
+                    <button class="dl-btn" data-type="video">
+                        <i class="fa-solid fa-video"></i>
+                        <span>Video MP4</span>
+                    </button>
+                    <button class="dl-btn" data-type="lyric">
+                        <i class="fa-solid fa-file-lines"></i>
+                        <span>Lời bài hát</span>
+                    </button>
+                </div>
+                <button class="btn-close-modal" id="btn-close-dl">Đóng</button>
+            </div>
+        </div>
+
     </div>
 
-    <script src="src/tet.js"></script>
-    <script src="src/remix.js"></script>
-    <script src="src/lofi.js"></script>
-    <script src="src/app.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/d4m-dev/media@main/src/tet.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/d4m-dev/media@main/src/remix.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/d4m-dev/media@main/src/lofi.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/d4m-dev/media@main/src/app.js"></script>
 </body>
 </html>
