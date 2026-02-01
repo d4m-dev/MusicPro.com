@@ -11,9 +11,9 @@
     <meta name="theme-color" content="#000000">
     <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/d4m-dev/media@main/src/styles.css">
 </head>
 <body>
+
     <div id="loader" class="flex-center">
         <div class="loader-ring"></div>
         <h3 style="font-weight:700; letter-spacing:1px;">MUSIC PRO</h3>
@@ -130,6 +130,9 @@
             </div>
 
             <div class="player-controls">
+                <!-- ... (Giữ nguyên phần controls như cũ) ... -->
+                <!-- Để ngắn gọn, tôi không lặp lại toàn bộ HTML controls vì nó giống hệt file gốc -->
+                <!-- Bạn hãy copy phần nội dung bên trong .player-controls từ file gốc sang đây -->
                 <div class="meta-info">
                     <div class="song-texts">
                         <div class="marquee-wrapper" id="marquee-box-title">
@@ -219,9 +222,12 @@
 
     </div>
 
+    <!-- Load các thư viện phụ trợ từ CDN -->
     <script src="https://cdn.jsdelivr.net/gh/d4m-dev/media@main/src/tet.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/d4m-dev/media@main/src/remix.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/d4m-dev/media@main/src/lofi.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/d4m-dev/media@main/src/app.js"></script>
+    
+    <!-- Load App chính qua Module -->
+    <script type="module" src="./app.js"></script>
 </body>
 </html>
