@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" data-theme="dark">
+<html lang="vi" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -18,6 +18,7 @@
     <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/d4m-dev/media@main/src/styles.css"></noscript>
 </head>
 <body>
+
     <div id="loader" class="flex-center">
         <div class="loader-ring"></div>
         <h3 style="font-weight:700; letter-spacing:1px;">MUSIC PRO</h3>
@@ -29,9 +30,8 @@
         <div class="top-bar">
             <div class="logo"><i class="fa-brands fa-youtube"></i> Music Pro</div>
             <div class="flex-center" style="gap: 15px;">
-                <button class="theme-toggle flex-center" id="theme-btn"><i class="fa-solid fa-moon"></i></button>
                 <div class="avatar" style="width:36px; height:36px; border-radius:50%; overflow:hidden; border:2px solid var(--border);">
-                    <img src="https://ui-avatars.com/api/?name=User&background=2962ff&color=fff" style="width:100%">
+                    <img src="https://github.com/d4m-dev/media/raw/main/ThuVienChinh/favicon/favicon-32x32.png" style="width:100%">
                 </div>
             </div>
         </div>
@@ -178,6 +178,7 @@
             <div class="nav-link active"><i class="fa-solid fa-house"></i> <span>Trang chủ</span></div>
             <div class="nav-link"><i class="fa-solid fa-compass"></i> <span>Khám phá</span></div>
             <div class="nav-link" id="nav-favorites"><i class="fa-solid fa-heart"></i> <span>Yêu thích</span></div>
+            <div class="nav-link" id="nav-settings"><i class="fa-solid fa-gear"></i> <span>Cài đặt</span></div>
         </nav>
         
         <div id="timer-modal" class="modal-overlay">
@@ -221,19 +222,197 @@
             </div>
         </div>
 
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h3>Cài Đặt</h3>
+                <div class="settings-container">
+                    <div class="settings-section">
+                        <div class="settings-title">CHUNG</div>
+                        <div class="settings-item">
+                            <div class="settings-icon"><i class="fa-solid fa-moon"></i></div>
+                            <div class="settings-info">
+                                <div class="settings-name">Chế độ tối</div>
+                                <div class="settings-desc">Chuyển đổi giữa chế độ sáng và tối</div>
+                            </div>
+                            <div class="toggle-switch" id="theme-toggle-switch"></div>
+                        </div>
+                        <div class="settings-item">
+                            <div class="settings-icon"><i class="fa-solid fa-language"></i></div>
+                            <div class="settings-info">
+                                <div class="settings-name">Ngôn ngữ</div>
+                                <div class="settings-desc">Thay đổi ngôn ngữ hiển thị</div>
+                            </div>
+                            <div class="settings-action">Tiếng Việt</div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-title">ÂM THANH</div>
+                        <div class="settings-item">
+                            <div class="settings-icon"><i class="fa-solid fa-sliders"></i></div>
+                            <div class="settings-info">
+                                <div class="settings-name">Cân bằng âm thanh</div>
+                                <div class="settings-desc">Điều chỉnh âm trầm và âm bổng</div>
+                            </div>
+                            <div class="settings-action">Mặc định</div>
+                        </div>
+                        <div class="settings-item">
+                            <div class="settings-icon"><i class="fa-solid fa-headphones"></i></div>
+                            <div class="settings-info">
+                                <div class="settings-name">Hiệu ứng âm thanh</div>
+                                <div class="settings-desc">Bật/tắt hiệu ứng âm thanh nâng cao</div>
+                            </div>
+                            <div class="toggle-switch" id="sound-effect-switch"></div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-title">KHÁC</div>
+                        <div class="settings-item">
+                            <div class="settings-icon"><i class="fa-solid fa-download"></i></div>
+                            <div class="settings-info">
+                                <div class="settings-name">Tự động cập nhật</div>
+                                <div class="settings-desc">Tự động tải về phiên bản mới nhất</div>
+                            </div>
+                            <div class="toggle-switch" id="auto-update-switch"></div>
+                        </div>
+                        <div class="settings-item">
+                            <div class="settings-icon"><i class="fa-solid fa-trash"></i></div>
+                            <div class="settings-info">
+                                <div class="settings-name">Xóa bộ nhớ đệm</div>
+                                <div class="settings-desc">Dọn dẹp dữ liệu tạm thời</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-close-modal" id="btn-close-settings">Đóng</button>
+            </div>
+        </div>
+
+        <!-- Reset Confirmation Modal -->
+        <div id="reset-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h3>Xác nhận cài đặt gốc</h3>
+                <div class="reset-warning">
+                    <p style="color:var(--text-sub); text-align:center; margin-bottom:20px; line-height:1.6;">
+                        Bạn có chắc chắn muốn khôi phục cài đặt gốc? Hành động này sẽ:<br><br>
+                        <span style="color:#ff6b6b;">• Xóa tất cả cài đặt cá nhân</span><br>
+                        <span style="color:#ff6b6b;">• Xóa danh sách yêu thích</span><br>
+                        <span style="color:#ff6b6b;">• Xóa lịch sử nghe gần đây</span><br>
+                        <span style="color:#ff6b6b;">• Đặt lại tất cả tùy chọn về mặc định</span><br>
+                        <span style="color:#ff6b6b;">• Không thể hoàn tác sau khi xác nhận</span>
+                    </p>
+                </div>
+                <div style="display:flex; gap:12px;">
+                    <button class="btn-close-modal" id="btn-cancel-reset" style="flex:1; background:rgba(255,255,255,0.05);">Hủy bỏ</button>
+                    <button class="btn-close-modal" id="btn-confirm-reset" style="flex:1; background:var(--primary); color:white; font-weight:700;">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3D Audio and EQ Modal -->
+        <div id="audio-controls-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h3>Điều Khiển Âm Thanh</h3>
+
+                <!-- Numeric Keypad for Code Entry -->
+                <div id="keypad-container" class="keypad-container">
+                    <div class="keypad-display">
+                        <input type="password" id="code-input" placeholder="Nhập mã" maxlength="4" readonly>
+                    </div>
+                    <div class="keypad-grid">
+                        <button class="keypad-btn" data-key="1">1</button>
+                        <button class="keypad-btn" data-key="2">2</button>
+                        <button class="keypad-btn" data-key="3">3</button>
+                        <button class="keypad-btn" data-key="4">4</button>
+                        <button class="keypad-btn" data-key="5">5</button>
+                        <button class="keypad-btn" data-key="6">6</button>
+                        <button class="keypad-btn" data-key="7">7</button>
+                        <button class="keypad-btn" data-key="8">8</button>
+                        <button class="keypad-btn" data-key="9">9</button>
+                        <button class="keypad-btn" data-key="C">C</button>
+                        <button class="keypad-btn" data-key="0">0</button>
+                        <button class="keypad-btn" data-key="OK">OK</button>
+                    </div>
+                </div>
+
+                <!-- Audio Controls (hidden initially) -->
+                <div id="audio-controls" class="audio-controls" style="display: none;">
+                    <div class="settings-section">
+                        <div class="settings-title">HIỆU ỨNG ÂM THANH 3D</div>
+                        <div class="settings-item">
+                            <div class="settings-icon"><i class="fa-solid fa-headphones"></i></div>
+                            <div class="settings-info">
+                                <div class="settings-name">Âm thanh vòm 3D</div>
+                                <div class="settings-desc">Tạo hiệu ứng âm thanh không gian</div>
+                            </div>
+                            <div class="toggle-switch" id="spatial-audio-toggle"></div>
+                        </div>
+                        <div class="settings-item">
+                            <div class="settings-icon"><i class="fa-solid fa-wave-square"></i></div>
+                            <div class="settings-info">
+                                <div class="settings-name">Hiệu ứng âm thanh nâng cao</div>
+                                <div class="settings-desc">Tăng cường trải nghiệm âm thanh</div>
+                            </div>
+                            <div class="toggle-switch" id="enhanced-audio-toggle"></div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-title">BỘ CHỈNH ÂM (EQ)</div>
+                        <div class="eq-controls">
+                            <div class="eq-slider">
+                                <label>Low (60Hz)</label>
+                                <input type="range" id="eq-low" min="-12" max="12" value="0">
+                                <span id="eq-low-value">0dB</span>
+                            </div>
+                            <div class="eq-slider">
+                                <label>Mid-Low (230Hz)</label>
+                                <input type="range" id="eq-mid-low" min="-12" max="12" value="0">
+                                <span id="eq-mid-low-value">0dB</span>
+                            </div>
+                            <div class="eq-slider">
+                                <label>Mid (910Hz)</label>
+                                <input type="range" id="eq-mid" min="-12" max="12" value="0">
+                                <span id="eq-mid-value">0dB</span>
+                            </div>
+                            <div class="eq-slider">
+                                <label>Mid-High (3.5kHz)</label>
+                                <input type="range" id="eq-mid-high" min="-12" max="12" value="0">
+                                <span id="eq-mid-high-value">0dB</span>
+                            </div>
+                            <div class="eq-slider">
+                                <label>High (14kHz)</label>
+                                <input type="range" id="eq-high" min="-12" max="12" value="0">
+                                <span id="eq-high-value">0dB</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="presets-section">
+                        <div class="settings-title">CHẾ ĐỘ ÂM THANH</div>
+                        <div class="preset-buttons">
+                            <button class="preset-btn active" data-preset="flat">Mặc định</button>
+                            <button class="preset-btn" data-preset="rock">Rock</button>
+                            <button class="preset-btn" data-preset="pop">Pop</button>
+                            <button class="preset-btn" data-preset="jazz">Jazz</button>
+                            <button class="preset-btn" data-preset="classical">Cổ điển</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-close-modal" id="btn-close-audio-controls">Đóng</button>
+            </div>
+        </div>
+
     </div>
 
     <script>
+        document.write('<script src="https://cdn.jsdelivr.net/gh/d4m-dev/media@main/src/playlists.js?v=' + Date.now() + '"><\/script>');
+    </script>
+    <script>
         document.write('<script src="https://cdn.jsdelivr.net/gh/d4m-dev/media@main/src/app.js?v=' + Date.now() + '"><\/script>');
-    </script>
-    <script>
-        document.write('<script src="https://cdn.jsdelivr.net/gh/d4m-dev/media@main/src/lofi.js?v=' + Date.now() + '"><\/script>');
-    </script>
-    <script>
-        document.write('<script src="https://cdn.jsdelivr.net/gh/d4m-dev/media@main/src/remix.js?v=' + Date.now() + '"><\/script>');
-    </script>
-    <script>
-        document.write('<script src="https://cdn.jsdelivr.net/gh/d4m-dev/media@main/src/tet.js?v=' + Date.now() + '"><\/script>');
     </script>
 </body>
 </html>
