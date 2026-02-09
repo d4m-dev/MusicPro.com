@@ -1,4 +1,4 @@
-const TRACKS_URL = 'https://raw.githubusercontent.com/d4m-dev/media/main/load-track/tracks.js';
+const TRACKS_URL = 'src/tracks.js';
 
 const normalizeTracks = (items = []) => items.map((item) => ({
     id: item.id,
