@@ -1,4 +1,4 @@
-const TRACKS_URL = 'src/tracks.js';
+const TRACKS_URL = 'tracks.js';
 
 const normalizeTracks = (items = []) => items.map((item) => ({
     id: item.id,
