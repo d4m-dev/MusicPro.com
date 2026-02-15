@@ -514,5 +514,71 @@ window.TRACKS = [
     audioSrc: "https://github.com/d4m-dev/media/raw/main/music/xuanvuquy/2.mp3",
     instrumentalSrc: "https://github.com/d4m-dev/media/raw/main/music/xuanvuquy/3.mp3",
     videoSrc: "https://github.com/d4m-dev/media/raw/main/music/xuanvuquy/4.mp4"
+  },
+
+  {
+    id: 48,
+    title: "Tự Em Sai",
+    artist: "Linh Hương Luz",
+    cover: "https://github.com/d4m-dev/media/raw/main/music/tuemsai/cover.jpg",
+    lyricSrc: "https://raw.githubusercontent.com/d4m-dev/media/main/music/tuemsai/1.lrc",
+    audioSrc: "https://github.com/d4m-dev/media/raw/main/music/tuemsai/2.mp3",
+    instrumentalSrc: "https://github.com/d4m-dev/media/raw/main/music/tuemsai/3.mp3",
+    videoSrc: "https://github.com/d4m-dev/media/raw/main/music/tuemsai/4.mp4"
+  },
+
+  {
+    id: 49,
+    title: "Anh Vui",
+    artist: "Phạm Kỳ",
+    cover: "https://github.com/d4m-dev/media/raw/main/music/anhvui/cover.jpg",
+    lyricSrc: "https://raw.githubusercontent.com/d4m-dev/media/main/music/anhvui/1.lrc",
+    audioSrc: "https://github.com/d4m-dev/media/raw/main/music/anhvui/2.mp3",
+    instrumentalSrc: "https://github.com/d4m-dev/media/raw/main/music/anhvui/3.mp3",
+    videoSrc: "https://github.com/d4m-dev/media/raw/main/music/anhvui/4.mp4"
+  },
+
+  {
+    id: 50,
+    title: "Bà Xã Của Anh",
+    artist: "Dương Ái Vy",
+    cover: "https://github.com/d4m-dev/media/raw/main/music/baxacuaanh/cover.jpg",
+    lyricSrc: "https://raw.githubusercontent.com/d4m-dev/media/main/music/baxacuaanh/1.lrc",
+    audioSrc: "https://github.com/d4m-dev/media/raw/main/music/baxacuaanh/2.mp3",
+    instrumentalSrc: "https://github.com/d4m-dev/media/raw/main/music/baxacuaanh/3.mp3",
+    videoSrc: "https://github.com/d4m-dev/media/raw/main/music/baxacuaanh/4.mp4"
+  },
+
+  {
+    id: 51,
+    title: "Cưới Chính",
+    artist: "Nal",
+    cover: "https://github.com/d4m-dev/media/raw/main/music/cuoichinh/cover.jpg",
+    lyricSrc: "https://raw.githubusercontent.com/d4m-dev/media/main/music/cuoichinh/1.lrc",
+    audioSrc: "https://github.com/d4m-dev/media/raw/main/music/cuoichinh/2.mp3",
+    instrumentalSrc: "https://github.com/d4m-dev/media/raw/main/music/cuoichinh/3.mp3",
+    videoSrc: "https://github.com/d4m-dev/media/raw/main/music/cuoichinh/4.mp4"
+  },
+
+  {
+    id: 52,
+    title: "Em Nhắc Anh",
+    artist: "Nana Liu x HTM",
+    cover: "https://github.com/d4m-dev/media/raw/main/music/emnhacanh/cover.jpg",
+    lyricSrc: "https://raw.githubusercontent.com/d4m-dev/media/main/music/emnhacanh/1.lrc",
+    audioSrc: "https://github.com/d4m-dev/media/raw/main/music/emnhacanh/2.mp3",
+    instrumentalSrc: "https://github.com/d4m-dev/media/raw/main/music/emnhacanh/3.mp3",
+    videoSrc: "https://github.com/d4m-dev/media/raw/main/music/emnhacanh/4.mp4"
+  },
+
+  {
+    id: 53,
+    title: "Xuân Huy Hoàng",
+    artist: "Đạt Long Vinh",
+    cover: "https://github.com/d4m-dev/media/raw/main/music/xuanhuyhoang/cover.jpg",
+    lyricSrc: "https://raw.githubusercontent.com/d4m-dev/media/main/music/xuanhuyhoang/1.lrc",
+    audioSrc: "https://github.com/d4m-dev/media/raw/main/music/xuanhuyhoang/2.mp3",
+    instrumentalSrc: "https://github.com/d4m-dev/media/raw/main/music/xuanhuyhoang/3.mp3",
+    videoSrc: "https://github.com/d4m-dev/media/raw/main/music/xuanhuyhoang/4.mp4"
   }
 ];
