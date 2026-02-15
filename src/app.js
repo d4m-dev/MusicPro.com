@@ -1,4 +1,4 @@
-const TRACKS_URL = 'tracks.js';
+const TRACKS_URL = 'src/tracks.js';
 
 const normalizeTracks = (items = []) => items.map((item) => ({
     id: item.id,
@@ -22,18 +22,18 @@ const loadRemoteTracks = async () => {
             const getter = new Function('window', `${text}; return window.TRACKS || [];`);
             return getter(sandbox) || [];
         }
-    } catch (e) { console.log('Remote tracks failed, trying local...'); }
+    } catch (e) { console.log('Lấy dữ liệu từ xa không thành công, thử cục bộ...'); }
 
     try {
         // 2. Nếu lỗi, thử tải từ Local (src/tracks.js)
-        const res = await fetch('../../src/tracks.js');
+        const res = await fetch('src/tracks.js');
         if (res.ok) {
             const text = await res.text();
             const sandbox = {};
             const getter = new Function('window', `${text}; return window.TRACKS || [];`);
             return getter(sandbox) || [];
         }
-    } catch (e) { console.error('Failed to load tracks:', e); }
+    } catch (e) { console.error('lỗi khi lấy dữ liệu track', e); }
     return [];
 };
 
@@ -56,6 +56,8 @@ class MusicPro {
             fontFamily: localStorage.getItem('fontFamily') || 'Urbanist',
             fontWeight: localStorage.getItem('fontWeight') || '400',
             layoutMode: localStorage.getItem('layoutMode') || 'standard',
+            // Theme by cover setting
+            autoThemeByCover: localStorage.getItem('autoThemeByCover') === 'true',
             // User playlists
             userPlaylists: JSON.parse(localStorage.getItem('userPlaylists') || '[]'),
             // Pro features
@@ -110,7 +112,7 @@ class MusicPro {
             document.body.classList.add(`layout-${this.state.layoutMode}`);
         }
         // Cấu hình Virtual Scroll
-        this.virtual = { displayList: [], rowHeight: 85, itemsPerRow: 1, buffer: 4, isTicking: false, lastStartRow: -1, lastEndRow: -1 };
+        this.virtual = { displayList: [], rowHeight: 75, itemsPerRow: 1, buffer: 4, isTicking: false, lastStartRow: -1, lastEndRow: -1 };
         this.lyricsPiPWindow = null;
         this.isLyricsCanvasActive = false;
         this.lyricsCanvas = null;
@@ -1704,9 +1706,10 @@ class MusicPro {
     updateVirtualMetrics() {
         const width = window.innerWidth;
         const isDesktop = width >= 1024;
-        // Desktop: Grid layout (~124px height + gap), Mobile: List layout (~85px height)
-        this.virtual.rowHeight = isDesktop ? 124 : 85;
-        
+        // Desktop: Grid layout (~110px height + gap), Mobile: List layout (~75px height)
+        // Reduced heights for better performance and smoother scrolling
+        this.virtual.rowHeight = isDesktop ? 110 : 75;
+
         if (isDesktop) {
             this.virtual.itemsPerRow = 3;
         } else {
@@ -2010,11 +2013,11 @@ class MusicPro {
         const appearanceItems = [
             {
                 name: 'Chủ đề',
-                desc: this.state.theme === 'auto' 
-                    ? 'Tự động theo cài đặt hệ thống' 
+                desc: this.state.theme === 'auto'
+                    ? 'Tự động theo cài đặt hệ thống'
                     : (this.state.theme === 'dark' ? 'Hiện đang dùng giao diện tối' : 'Hiện đang dùng giao diện sáng'),
-                icon: this.state.theme === 'auto' 
-                    ? 'fa-solid fa-laptop' 
+                icon: this.state.theme === 'auto'
+                    ? 'fa-solid fa-laptop'
                     : (this.state.theme === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun'),
                 action: `<span class="status-indicator status-${this.state.theme === 'auto' ? 'info' : (this.state.theme === 'dark' ? 'active' : 'inactive')}">${this.state.theme === 'auto' ? 'TỰ ĐỘNG' : (this.state.theme === 'dark' ? 'TỐI' : 'SÁNG')}</span>`,
                 onClick: () => {
@@ -2026,14 +2029,14 @@ class MusicPro {
                     } else {
                         this.state.theme = 'auto';
                     }
-                    
+
                     localStorage.setItem('theme', this.state.theme);
-                    
+
                     this.applyTheme();
                     this.updateThemeColor();
                     this.updateToggleStates();
                     this.updateAllRangeInputs();
-                    
+
                     // Re-render settings to update the theme item
                     this.renderSettings();
                 }
@@ -2896,7 +2899,7 @@ class MusicPro {
      */
     showColorPickerModal() {
         let modal = document.getElementById('color-picker-modal');
-        
+
         const colors = [
             '#2962ff', '#e91e63', '#4caf50', '#ff9800', '#9c27b0', '#00bcd4', // Basic
             '#FF512F', '#DD2476', '#1CB5E0', '#8E2DE2', '#00c6ff', '#fc4a1a'  // Vibrant/Gradient
@@ -2906,9 +2909,9 @@ class MusicPro {
             modal = document.createElement('div');
             modal.id = 'color-picker-modal';
             modal.className = 'modal-overlay';
-            
+
             const currentColor = this.state.customPrimaryColor || '#2962ff';
-            const colorOptionsHtml = colors.map(c => 
+            const colorOptionsHtml = colors.map(c =>
                 `<div class="color-option" data-color="${c}" style="width: 40px; height: 40px; border-radius: 50%; background: ${c}; cursor: pointer; border: 2px solid ${currentColor === c ? 'white' : 'transparent'};"></div>`
             ).join('');
 
@@ -2928,6 +2931,15 @@ class MusicPro {
                             ${colorOptionsHtml}
                         </div>
                     </div>
+                    <div style="margin-bottom: 24px; padding: 15px; background: var(--bg-secondary); border-radius: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <div>
+                                <div style="font-weight: 600; color: var(--text-main);">Tự động (thay đổi theo bài hát)</div>
+                                <div style="font-size: 13px; color: var(--text-sub);">Màu chủ đề sẽ thay đổi theo ảnh bìa bài hát</div>
+                            </div>
+                            <div class="toggle-switch ${this.state.autoThemeByCover ? 'active' : ''}" id="auto-theme-cover-toggle-modal" style="cursor: pointer;"></div>
+                        </div>
+                    </div>
                     <div style="display: flex; gap: 12px;">
                         <button class="btn-close-modal" id="btn-cancel-color" style="flex: 1; background: rgba(255,255,255,0.05);">Hủy</button>
                         <button id="btn-save-color" style="flex: 1; background: var(--primary); color: white; padding: 12px; border-radius: 12px; font-weight: 600;">Lưu</button>
@@ -2942,6 +2954,12 @@ class MusicPro {
             document.querySelectorAll('.color-option').forEach(option => {
                 option.style.border = option.dataset.color === currentColor ? '2px solid white' : '2px solid transparent';
             });
+            
+            // Update the toggle switch state
+            const autoThemeToggle = document.getElementById('auto-theme-cover-toggle-modal');
+            if (autoThemeToggle) {
+                autoThemeToggle.classList.toggle('active', this.state.autoThemeByCover);
+            }
         }
 
         // Show the modal
@@ -2952,6 +2970,7 @@ class MusicPro {
         const colorOptions = document.querySelectorAll('.color-option');
         const btnCancel = document.getElementById('btn-cancel-color');
         const btnSave = document.getElementById('btn-save-color');
+        const autoThemeToggle = document.getElementById('auto-theme-cover-toggle-modal');
 
         // Update color picker when color option is clicked
         colorOptions.forEach(option => {
@@ -2961,6 +2980,15 @@ class MusicPro {
                 colorOptions.forEach(opt => {
                     opt.style.border = opt.dataset.color === option.dataset.color ? '2px solid white' : '2px solid transparent';
                 });
+                
+                // Apply the color immediately if auto theme by cover is disabled
+                if (!this.state.autoThemeByCover) {
+                    this.setCustomPrimaryColor(option.dataset.color);
+                } else {
+                    // If auto theme by cover is enabled, still update the custom color for when it's turned off
+                    this.state.customPrimaryColor = option.dataset.color;
+                    localStorage.setItem('customPrimaryColor', option.dataset.color);
+                }
             };
         });
 
@@ -2969,7 +2997,59 @@ class MusicPro {
             colorOptions.forEach(opt => {
                 opt.style.border = opt.dataset.color === colorPicker.value ? '2px solid white' : '2px solid transparent';
             });
+            
+            // Apply the color immediately if auto theme by cover is disabled
+            if (!this.state.autoThemeByCover) {
+                this.setCustomPrimaryColor(colorPicker.value);
+            } else {
+                // If auto theme by cover is enabled, still update the custom color for when it's turned off
+                this.state.customPrimaryColor = colorPicker.value;
+                localStorage.setItem('customPrimaryColor', colorPicker.value);
+            }
         };
+
+        // Handle the auto theme by cover toggle
+        if (autoThemeToggle) {
+            autoThemeToggle.onclick = () => {
+                // Toggle the auto theme by cover setting
+                this.state.autoThemeByCover = !this.state.autoThemeByCover;
+                localStorage.setItem('autoThemeByCover', this.state.autoThemeByCover);
+                
+                // Update UI to reflect the change
+                autoThemeToggle.classList.toggle('active', this.state.autoThemeByCover);
+                
+                // Apply the theme change immediately
+                if (this.state.autoThemeByCover && this.state.playlist[this.state.currentIndex]) {
+                    // Apply dynamic color from current song's artwork
+                    this.applyDynamicUIColors(this.state.playlist[this.state.currentIndex].artwork);
+                } else if (!this.state.autoThemeByCover && this.state.customPrimaryColor) {
+                    // Revert to custom color if available
+                    this.setCustomPrimaryColor(this.state.customPrimaryColor);
+                } else if (!this.state.autoThemeByCover) {
+                    // If no custom color is set, revert to default
+                    this.setCustomPrimaryColor('#2962ff'); // Default color
+                }
+                
+                // Update range inputs and all UI elements to reflect the new color
+                setTimeout(() => {
+                    this.updateAllRangeInputs();
+                    this.updateMuteUI();
+                    this.updateHeartButton();
+                    
+                    // Update navigation elements to reflect the new color
+                    if (this.state.autoThemeByCover && this.state.playlist[this.state.currentIndex]) {
+                        // Apply dynamic color from current song's artwork
+                        this.applyDynamicUIColors(this.state.playlist[this.state.currentIndex].artwork);
+                    } else if (!this.state.autoThemeByCover && this.state.customPrimaryColor) {
+                        // Revert to custom color if available
+                        this.applyColorToUIElements(this.state.customPrimaryColor);
+                    } else if (!this.state.autoThemeByCover) {
+                        // If no custom color is set, revert to default
+                        this.applyColorToUIElements('#2962ff'); // Default color
+                    }
+                }, 50); // Small delay to ensure DOM updates
+            };
+        }
 
         modal.querySelectorAll('.btn-close-modal').forEach(btn => {
             btn.onclick = () => modal.classList.remove('show');
@@ -2982,6 +3062,12 @@ class MusicPro {
         btnSave.onclick = () => {
             const selectedColor = colorPicker.value;
             this.setCustomPrimaryColor(selectedColor);
+            
+            // If auto theme by cover is enabled, apply it immediately
+            if (this.state.autoThemeByCover && this.state.playlist[this.state.currentIndex]) {
+                this.applyDynamicUIColors(this.state.playlist[this.state.currentIndex].artwork);
+            }
+            
             modal.classList.remove('show');
             this.showToast('Đã cập nhật màu sắc');
         };
@@ -3033,6 +3119,7 @@ class MusicPro {
 
         // Update the range input styles to use the new primary color
         this.updateAllRangeInputs();
+        this.updateMuteUI();
         this.updateHeartButton();
 
         // Apply to mini player progress fill
@@ -3052,6 +3139,23 @@ class MusicPro {
         activeElements.forEach(el => {
             if (el.style) {
                 el.style.setProperty('--primary', color, 'important');
+            }
+        });
+
+        // Update navigation buttons to ensure they reflect the primary color when active
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(nav => {
+            // If the nav link is active, make sure it reflects the primary color
+            // If inactive, set to default text color
+            const icon = nav.querySelector('i');
+            const span = nav.querySelector('span');
+            
+            if (nav.classList.contains('active')) {
+                if (icon) icon.style.color = color;
+                if (span) span.style.color = color;
+            } else {
+                if (icon) icon.style.color = 'var(--text-sub)'; // Gray color for inactive
+                if (span) span.style.color = 'var(--text-sub)'; // Gray color for inactive
             }
         });
 
@@ -3964,18 +4068,18 @@ class MusicPro {
         document.getElementById('full-artwork').src = song.artwork;
         document.getElementById('mini-img').src = song.artwork;
 
-        // Apply dynamic UI colors based on album artwork
-        this.applyDynamicUIColors(song.artwork).then(() => {
-            // Fallback to hue if color extraction fails
-            if (!this.state.customPrimaryColor) {
+        // Apply dynamic UI colors based on album artwork if auto theme by cover is enabled
+        if (this.state.autoThemeByCover) {
+            this.applyDynamicUIColors(song.artwork).then(() => {
+                // Fallback to hue if color extraction fails
                 this.extractColor(song.artwork).then(color => {
                     if (!color) {
                         const hue = (this.state.currentIndex * 50) % 360;
                         this.elements.ambient.style.background = `radial-gradient(circle, hsl(${hue},70%,50%), transparent 70%)`;
                     }
                 });
-            }
-        });
+            });
+        }
 
         if ('mediaSession' in navigator) {
             navigator.mediaSession.metadata = new MediaMetadata({
@@ -4026,11 +4130,14 @@ class MusicPro {
             // Update primary color based on album artwork
             document.documentElement.style.setProperty('--primary', colors.rgb);
             document.documentElement.style.setProperty('--primary-gradient', `linear-gradient(135deg, ${colors.hex} 0%, ${this.darkenColor(colors.hex, 30)} 100%)`);
-            
+
             // Update ambient light to match album color
             if (this.elements.ambient) {
                 this.elements.ambient.style.background = `radial-gradient(circle, ${colors.hex}, transparent 70%)`;
             }
+
+            // Apply color to progress bar, volume bar, and other UI elements
+            this.applyColorToUIElements(colors.hex);
             
             // Update all range inputs to reflect new color
             this.updateAllRangeInputs();
@@ -4477,8 +4584,8 @@ class MusicPro {
         if (themeToggleSwitch) {
             // Set the theme toggle to active if current theme is dark (not light and not auto)
             // For auto theme, we'll show the current effective theme state
-            const effectiveTheme = this.state.theme === 'auto' 
-                ? window.matchMedia('(prefers-color-scheme: dark)').matches 
+            const effectiveTheme = this.state.theme === 'auto'
+                ? window.matchMedia('(prefers-color-scheme: dark)').matches
                 : this.state.theme !== 'light';
             themeToggleSwitch.classList.toggle('active', effectiveTheme);
         }
@@ -4491,12 +4598,14 @@ class MusicPro {
         if (autoUpdateSwitch) {
             autoUpdateSwitch.classList.remove('active'); // Default to off
         }
-        
+
         // Update spatial audio toggle if it exists
         const spatialToggle = document.getElementById('spatial-audio-toggle');
         if (spatialToggle) {
             spatialToggle.classList.toggle('active', this.state.spatialAudioEnabled);
         }
+
+        // Note: The auto theme by cover toggle is now in the color picker modal
 
         // Update the settings page if it's currently displayed
         if (this.state.currentNav === 3) {
@@ -4860,6 +4969,72 @@ class MusicPro {
                 // Initially show the keypad
                 document.getElementById('keypad-container').style.display = 'block';
                 document.getElementById('audio-controls').style.display = 'none';
+            } else if (e.code === 'KeyF') {
+                // Toggle full player or video fullscreen based on current state
+                e.preventDefault();
+                
+                // If video is in fullscreen, exit fullscreen
+                if (document.fullscreenElement) {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.mozCancelFullScreen) {
+                        document.mozCancelFullScreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                    return;
+                }
+                
+                // If full player is open and we're in video tab, toggle video fullscreen
+                if (this.elements.overlay.classList.contains('open') && this.state.currentMode === 'video') {
+                    const videoContainer = document.querySelector('.video-container');
+                    if (videoContainer) {
+                        if (!document.fullscreenElement) {
+                            // Enter fullscreen
+                            if (videoContainer.requestFullscreen) {
+                                videoContainer.requestFullscreen();
+                            } else if (videoContainer.webkitRequestFullscreen) {
+                                videoContainer.webkitRequestFullscreen();
+                            } else if (videoContainer.mozRequestFullScreen) {
+                                videoContainer.mozRequestFullScreen();
+                            } else if (videoContainer.msRequestFullscreen) {
+                                videoContainer.msRequestFullscreen();
+                            }
+                        } else {
+                            // Exit fullscreen
+                            if (document.exitFullscreen) {
+                                document.exitFullscreen();
+                            } else if (document.webkitExitFullscreen) {
+                                document.webkitExitFullscreen();
+                            } else if (document.mozCancelFullScreen) {
+                                document.mozCancelFullScreen();
+                            } else if (document.msExitFullscreen) {
+                                document.msExitFullscreen();
+                            }
+                        }
+                    }
+                } else {
+                    // If full player is not open, open it
+                    this.elements.overlay.classList.add('open');
+                }
+            } else if (e.key === 'Escape') {
+                // If video is in fullscreen, exit fullscreen first
+                if (document.fullscreenElement) {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.mozCancelFullScreen) {
+                        document.mozCancelFullScreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                } else if (this.elements.overlay.classList.contains('open')) {
+                    // If full player is open, close it
+                    this.elements.overlay.classList.remove('open');
+                }
             }
         });
 
@@ -5369,8 +5544,8 @@ class MusicPro {
 
         setTimeout(() => {
             document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active')); document.querySelectorAll('.nav-link')[i].classList.add('active');
-            
-            this.state.currentNav = i; this.state.currentFilter = 'all'; this.state.searchQuery = ''; 
+
+            this.state.currentNav = i; this.state.currentFilter = 'all'; this.state.searchQuery = '';
             const titles = ['Danh sách phát', 'Khám phá', 'Bài hát yêu thích', 'Cài đặt'];
             const subtitles = [
                 'Cập nhật hôm nay • Dành riêng cho bạn',
@@ -5385,16 +5560,16 @@ class MusicPro {
 
             document.getElementById('sort-controls').style.display = (i===0) ? 'flex' : 'none';
             this.elements.searchInput.placeholder = i === 3 ? 'Tìm kiếm cài đặt...' : 'Tìm kiếm bài hát, nghệ sĩ...';
-            
+
             const chips = document.querySelector('.chips-wrapper');
             if (chips) chips.style.display = 'none';
 
-            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active')); 
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
             const chip = document.querySelector('.chip');
             if (chip) chip.classList.add('active');
-            
+
             if (i===2) this.state.currentFilter = 'favorites';
-            
+
             if (i === 1) this.renderExplore();
             else if (i === 3) this.renderSettings();
             else this.renderPlaylist();
@@ -5403,7 +5578,30 @@ class MusicPro {
 
             this.elements.list.style.opacity = '1';
             this.elements.list.style.transform = 'translateY(0)';
+
+            // Close the player overlay when navigating to any section to prevent empty player
+            // The overlay should only be opened intentionally by user interaction
+            this.elements.overlay.classList.remove('open');
+
+            // Update navigation colors to reflect the active/inactive state
+            const navLinks = document.querySelectorAll('.nav-link');
+            const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#2962ff';
             
+            navLinks.forEach((nav, index) => {
+                const icon = nav.querySelector('i');
+                const span = nav.querySelector('span');
+                
+                if (index === i) {
+                    // Active navigation item
+                    if (icon) icon.style.color = primaryColor;
+                    if (span) span.style.color = primaryColor;
+                } else {
+                    // Inactive navigation item
+                    if (icon) icon.style.color = 'var(--text-sub)';
+                    if (span) span.style.color = 'var(--text-sub)';
+                }
+            });
+
             // Ensure search bar visibility is handled correctly after navigation
             setTimeout(() => {
                 const searchWrapper = this.elements.searchInput.closest('.search-wrapper') || this.elements.searchInput.parentElement;
